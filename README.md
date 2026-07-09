@@ -79,6 +79,26 @@ $sequence | Export-MouseSequence -Path ./open-menu.json
 Invoke-MouseSequence -Path ./open-menu.json
 ```
 
+### Capturing a sequence instead of writing one
+
+Most people would rather record what they actually do than hand-author a list of coordinates.
+`Start-MouseCapture` polls the cursor position and button state and turns what it sees into the
+same step objects `New-MouseStep` produces, so the output plugs straight into
+`Invoke-MouseSequence` and `Export-MouseSequence`:
+
+```powershell
+# 3-second countdown, then records for 10 seconds
+$captured = Start-MouseCapture -DurationSeconds 10
+
+# Replay it immediately, or save it for later
+$captured | Invoke-MouseSequence
+$captured | Export-MouseSequence -Path ./recorded.json
+```
+
+It's a polling capture, not a low-level input hook, so two things it can't see: clicks/moves
+faster than `-SampleIntervalMilliseconds` (default 20ms), and scroll wheel input — add
+`Scroll`/`HorizontalScroll` steps by hand with `New-MouseStep` if your sequence needs them.
+
 ## Cmdlets
 
 | Cmdlet | Description |
@@ -98,6 +118,8 @@ Invoke-MouseSequence -Path ./open-menu.json
 | `Invoke-MouseSequence` | Plays back an array of steps (piped in, or loaded via `-Path`) in order, optionally `-Repeat`ed. |
 | `Export-MouseSequence` | Saves a step array to a JSON file. |
 | `Import-MouseSequence` | Loads a step array back from a JSON file. |
+| `Get-MouseButtonState` | Returns `$true`/`$false` for whether a button (`-Button Left\|Right\|Middle`) is currently held down. |
+| `Start-MouseCapture` | Records live mouse movement/clicks for `-DurationSeconds` and returns them as a step array, ready for `Invoke-MouseSequence` or `Export-MouseSequence`. |
 
 ## Project layout
 

@@ -1,6 +1,6 @@
 @{
     RootModule        = 'Mouser.psm1'
-    ModuleVersion     = '0.3.0'
+    ModuleVersion     = '0.4.0'
     GUID              = '7323ae17-a37d-4fff-9d8b-5aacb26802ce'
     Author            = 'philmea'
     CompanyName       = 'Unknown'
@@ -24,7 +24,9 @@
         'New-MouseStep',
         'Invoke-MouseSequence',
         'Export-MouseSequence',
-        'Import-MouseSequence'
+        'Import-MouseSequence',
+        'Get-MouseButtonState',
+        'Start-MouseCapture'
     )
     CmdletsToExport   = @()
     VariablesToExport = @()
