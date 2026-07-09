@@ -12,7 +12,8 @@
     FunctionsToExport = @(
         'Get-Cursor',
         'Set-Cursor',
-        'Send-Click'
+        'Send-Click',
+        'Send-RightClick'
     )
     CmdletsToExport   = @()
     VariablesToExport = @()
