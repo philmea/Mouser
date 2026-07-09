@@ -5,8 +5,6 @@ function Send-Click {
         $stationary = $false
     )
     Process {
-        Add-Type -MemberDefinition '[DllImport("user32.dll")] public static extern void mouse_event(int flags, int dx, int dy, int cButtons, int info);' -Name U32SendClick -Namespace W;
-        # https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-mouse_event
         $click = 1
         $pos = Get-Cursor
 
@@ -18,8 +16,8 @@ function Send-Click {
                 }
             }
 
-            [W.U32SendClick]::mouse_event(0x00000002, 0, 0, 0, 0);
-            [W.U32SendClick]::mouse_event(0x00000004, 0, 0, 0, 0);
+            Invoke-Win32MouseEvent -Flags 0x00000002 # MOUSEEVENTF_LEFTDOWN
+            Invoke-Win32MouseEvent -Flags 0x00000004 # MOUSEEVENTF_LEFTUP
             Start-Sleep -Milliseconds 50
             $click++
         }
