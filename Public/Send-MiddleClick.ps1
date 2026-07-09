@@ -1,4 +1,4 @@
-function Send-RightClick {
+function Send-MiddleClick {
     [CmdletBinding()]
     param (
         [int]$clicks = 1,
@@ -16,8 +16,8 @@ function Send-RightClick {
                 }
             }
 
-            Send-MouseDown -Button Right
-            Send-MouseUp -Button Right
+            Send-MouseDown -Button Middle
+            Send-MouseUp -Button Middle
             Start-Sleep -Milliseconds 50
             $click++
         }
