@@ -27,6 +27,9 @@ Send-Click
 
 # Left-click 3 times, aborting if the cursor moves between clicks
 Send-Click -clicks 3 -stationary $true
+
+# Right-click once
+Send-RightClick
 ```
 
 ## Cmdlets
@@ -36,6 +39,7 @@ Send-Click -clicks 3 -stationary $true
 | `Get-Cursor` | Returns the current cursor position as `@{ x = ..; y = .. }`. |
 | `Set-Cursor` | Moves the cursor to the given `x`/`y` coordinates. |
 | `Send-Click` | Sends one or more left mouse clicks at the current cursor position. |
+| `Send-RightClick` | Sends one or more right mouse clicks at the current cursor position. |
 
 ## Project layout
 
@@ -43,5 +47,5 @@ Send-Click -clicks 3 -stationary $true
 Mouser.psd1     # module manifest
 Mouser.psm1     # root module, dot-sources Public/Private functions and exports the public ones
 Public/         # one file per exported cmdlet
-Private/        # internal helper functions (none yet)
+Private/        # internal helper functions (e.g. the shared user32.dll mouse_event wrapper)
 ```
