@@ -74,9 +74,33 @@ $sequence | Invoke-MouseSequence
 # Run it 3 times in a row
 $sequence | Invoke-MouseSequence -Repeat 3
 
+# Or run it on a timer instead of a fixed count - loops until 5 minutes have elapsed.
+# Checked between laps, not mid-sequence, so it can run a little past 5 minutes rather
+# than being cut off mid-step (e.g. mid-drag).
+$sequence | Invoke-MouseSequence -DurationSeconds 300
+
 # Save it for later, then replay straight from disk
 $sequence | Export-MouseSequence -Path ./open-menu.json
 Invoke-MouseSequence -Path ./open-menu.json
+```
+
+### Composing sequences
+
+`Invoke-MouseSequence` only knows how to run one sequence at a time, on purpose - switching
+between sequences on a schedule (e.g. "loop A for 5 minutes, run B once, then go back to looping
+A") is workflow-specific orchestration, not a mouse-automation primitive, so it belongs in a small
+wrapper script around the module rather than in the module itself:
+
+```powershell
+Import-Module ./Mouser.psd1
+
+$sequenceA = Import-MouseSequence -Path ./sequence-a.json
+$sequenceB = Import-MouseSequence -Path ./sequence-b.json
+
+while ($true) {
+    $sequenceA | Invoke-MouseSequence -DurationSeconds 300
+    $sequenceB | Invoke-MouseSequence
+}
 ```
 
 `Export-MouseSequence` writes an envelope object rather than a bare array, so the on-disk shape is
@@ -131,7 +155,7 @@ faster than `-SampleIntervalMilliseconds` (default 20ms), and scroll wheel input
 | `Send-HorizontalScroll` | Sends a horizontal mouse wheel event (`-Amount`, in multiples of 120 = one notch). |
 | `Move-Cursor` | Moves the cursor to `-X`/`-Y` through interpolated intermediate positions instead of a teleport, so hover-driven UI (menus, flyouts) tracks the movement. |
 | `New-MouseStep` | Builds a single step (`Move`, `Click`, `RightClick`, `MiddleClick`, `DoubleClick`, `MouseDown`, `MouseUp`, `Scroll`, `HorizontalScroll`, `Wait`) for use with `Invoke-MouseSequence`. |
-| `Invoke-MouseSequence` | Plays back an array of steps (piped in, or loaded via `-Path`) in order, optionally `-Repeat`ed. |
+| `Invoke-MouseSequence` | Plays back an array of steps (piped in, or loaded via `-Path`) in order, either `-Repeat`ed a fixed number of times or looped for `-DurationSeconds`. |
 | `Export-MouseSequence` | Saves a step array to a JSON file as a `{ Version, ExportedAt, StepCount, Steps }` envelope. |
 | `Import-MouseSequence` | Loads a step array back from a JSON file written by `Export-MouseSequence`. |
 | `Get-MouseButtonState` | Returns `$true`/`$false` for whether a button (`-Button Left\|Right\|Middle`) is currently held down. |
