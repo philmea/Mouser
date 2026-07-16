@@ -1,10 +1,19 @@
 function Send-DoubleClick {
     [CmdletBinding()]
     param (
+        [Nullable[int]]$X = $null,
+        [Nullable[int]]$Y = $null,
         [int]$clicks = 1,
         $stationary = $false
     )
     Process {
+        if (($null -eq $X) -xor ($null -eq $Y)) {
+            throw 'Specify both -X and -Y together, or neither.'
+        }
+        if ($null -ne $X -and $null -ne $Y) {
+            Move-Cursor -X $X -Y $Y | Out-Null
+        }
+
         Add-Type -AssemblyName System.Windows.Forms
         # https://learn.microsoft.com/en-us/dotnet/api/system.windows.forms.systeminformation.doubleclicktime
         # DoubleClickTime is the max gap (ms) Windows allows between the two clicks of a double-click.
