@@ -79,6 +79,22 @@ $sequence | Export-MouseSequence -Path ./open-menu.json
 Invoke-MouseSequence -Path ./open-menu.json
 ```
 
+`Export-MouseSequence` writes an envelope object rather than a bare array, so the on-disk shape is
+stable no matter how many steps it holds (a bare array would serialize a single step as `{...}`
+instead of `[{...}]`, which `Import-MouseSequence` has to account for either way):
+
+```json
+{
+    "Version": 1,
+    "ExportedAt": "2026-07-16T18:23:00.0000000Z",
+    "StepCount": 2,
+    "Steps": [
+        { "Action": "Move", "X": 100, "Y": 40, "DurationMilliseconds": 300, "Steps": 30, "Clicks": 1, "Stationary": false, "Button": "Left", "Amount": 120, "DelayMilliseconds": 150 },
+        { "Action": "Click", "X": 0, "Y": 0, "DurationMilliseconds": 300, "Steps": 30, "Clicks": 1, "Stationary": false, "Button": "Left", "Amount": 120, "DelayMilliseconds": 0 }
+    ]
+}
+```
+
 ### Capturing a sequence instead of writing one
 
 Most people would rather record what they actually do than hand-author a list of coordinates.
@@ -116,8 +132,8 @@ faster than `-SampleIntervalMilliseconds` (default 20ms), and scroll wheel input
 | `Move-Cursor` | Moves the cursor to `-X`/`-Y` through interpolated intermediate positions instead of a teleport, so hover-driven UI (menus, flyouts) tracks the movement. |
 | `New-MouseStep` | Builds a single step (`Move`, `Click`, `RightClick`, `MiddleClick`, `DoubleClick`, `MouseDown`, `MouseUp`, `Scroll`, `HorizontalScroll`, `Wait`) for use with `Invoke-MouseSequence`. |
 | `Invoke-MouseSequence` | Plays back an array of steps (piped in, or loaded via `-Path`) in order, optionally `-Repeat`ed. |
-| `Export-MouseSequence` | Saves a step array to a JSON file. |
-| `Import-MouseSequence` | Loads a step array back from a JSON file. |
+| `Export-MouseSequence` | Saves a step array to a JSON file as a `{ Version, ExportedAt, StepCount, Steps }` envelope. |
+| `Import-MouseSequence` | Loads a step array back from a JSON file written by `Export-MouseSequence`. |
 | `Get-MouseButtonState` | Returns `$true`/`$false` for whether a button (`-Button Left\|Right\|Middle`) is currently held down. |
 | `Start-MouseCapture` | Records live mouse movement/clicks for `-DurationSeconds` and returns them as a step array, ready for `Invoke-MouseSequence` or `Export-MouseSequence`. |
 
