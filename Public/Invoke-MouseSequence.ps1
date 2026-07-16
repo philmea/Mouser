@@ -7,7 +7,13 @@ function Invoke-MouseSequence {
         [Parameter(Mandatory, ParameterSetName = 'Path')]
         [string]$Path,
 
-        [int]$Repeat = 1
+        [int]$Repeat = 1,
+
+        # Loop the sequence until this many seconds have elapsed instead of a fixed -Repeat count.
+        # Checked between laps rather than mid-sequence, so a run can finish a little past the
+        # requested duration instead of being cut off mid-step (e.g. mid-drag). Takes priority
+        # over -Repeat when set.
+        [int]$DurationSeconds = 0
     )
 
     Begin {
@@ -28,26 +34,18 @@ function Invoke-MouseSequence {
             return
         }
 
-        for ($run = 1; $run -le $Repeat; $run++) {
-            foreach ($step in $collected) {
-                Write-Verbose "Step $($step.Action): $($step | Out-String)"
-
-                switch ($step.Action) {
-                    'Move' { Move-Cursor -X $step.X -Y $step.Y -DurationMilliseconds $step.DurationMilliseconds -Steps $step.Steps | Out-Null }
-                    'Click' { Send-Click -clicks $step.Clicks -stationary $step.Stationary }
-                    'RightClick' { Send-RightClick -clicks $step.Clicks -stationary $step.Stationary }
-                    'MiddleClick' { Send-MiddleClick -clicks $step.Clicks -stationary $step.Stationary }
-                    'DoubleClick' { Send-DoubleClick -clicks $step.Clicks -stationary $step.Stationary }
-                    'MouseDown' { Send-MouseDown -Button $step.Button }
-                    'MouseUp' { Send-MouseUp -Button $step.Button }
-                    'Scroll' { Send-Scroll -Amount $step.Amount }
-                    'HorizontalScroll' { Send-HorizontalScroll -Amount $step.Amount }
-                    'Wait' { }
-                    default { Write-Error "Unknown mouse step action: $($step.Action)" }
+        if ($DurationSeconds -gt 0) {
+            $stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
+            do {
+                foreach ($step in $collected) {
+                    Invoke-MouseStep -Step $step
                 }
-
-                if ($step.DelayMilliseconds -gt 0) {
-                    Start-Sleep -Milliseconds $step.DelayMilliseconds
+            } while ($stopwatch.Elapsed.TotalSeconds -lt $DurationSeconds)
+        }
+        else {
+            for ($run = 1; $run -le $Repeat; $run++) {
+                foreach ($step in $collected) {
+                    Invoke-MouseStep -Step $step
                 }
             }
         }
