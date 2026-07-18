@@ -5,9 +5,9 @@ function New-MouseStep {
         [ValidateSet('Move', 'Click', 'RightClick', 'MiddleClick', 'DoubleClick', 'MouseDown', 'MouseUp', 'Scroll', 'HorizontalScroll', 'Wait')]
         [string]$Action,
 
-        # Move
-        [int]$X = 0,
-        [int]$Y = 0,
+        # Move, and optionally Click / RightClick / MiddleClick / DoubleClick (moves there first)
+        [Nullable[int]]$X = $null,
+        [Nullable[int]]$Y = $null,
         [int]$DurationMilliseconds = 300,
         [int]$Steps = 30,
 

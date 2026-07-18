@@ -22,20 +22,26 @@ Get-Cursor
 # Move the cursor
 Set-Cursor -x 500 -y 300
 
-# Left-click once
+# Left-click once at the current cursor position
 Send-Click
 
 # Left-click 3 times, aborting if the cursor moves between clicks
 Send-Click -clicks 3 -stationary $true
 
-# Right-click once
-Send-RightClick
+# Click a specific point in one call - moves there (interpolated via Move-Cursor), then clicks
+Send-Click -X 812 -Y 340
 
-# Middle-click once
+# Same idea, any button - Send-Click's -Button covers what used to need three separate cmdlets
+Send-Click -X 812 -Y 340 -Button Right
+Send-Click -X 812 -Y 340 -Button Middle
+
+# Send-RightClick / Send-MiddleClick still exist as readable shorthand for the common cases -
+# they just forward to Send-Click now
+Send-RightClick -X 812 -Y 340
 Send-MiddleClick
 
-# Double-click once
-Send-DoubleClick
+# Double-click once, timed to the OS double-click interval - also takes -X/-Y
+Send-DoubleClick -X 812 -Y 340
 
 # Press and hold the left button, move, then release (manual drag)
 Send-MouseDown -Button Left
@@ -52,21 +58,30 @@ Send-HorizontalScroll -Amount 120
 # Move smoothly (30 intermediate positions over 300ms), so hover-triggered UI
 # (menus, flyouts) has real mouse-move events to react to instead of a teleport
 Move-Cursor -X 500 -Y 40 -DurationMilliseconds 300 -Steps 30
+
+# Nudge the cursor by an offset instead of an absolute position
+Move-Cursor -DeltaX 20 -DeltaY -10
+
+# Where's the desktop, in case you're working across multiple monitors?
+Get-ScreenResolution
+
+# What color is this pixel? Useful for "wait until this button lit up" style checks before clicking
+Get-PixelColor -X 812 -Y 340
 ```
 
 ### Sequences
 
 Build a reusable series of moves and clicks with `New-MouseStep`, then play it back with
-`Invoke-MouseSequence`. `Move` steps interpolate through `Move-Cursor` by default, which is what
-lets a sequence walk through a menu and click a submenu item — a teleport would skip past the
-hover states that open it.
+`Invoke-MouseSequence`. Passing `-X`/`-Y` to a `Click`/`RightClick`/`MiddleClick`/`DoubleClick`
+step moves there first (interpolated through `Move-Cursor`, same as a standalone `Move` step) and
+then clicks - one step instead of a separate `Move` + `Click` pair for what's really one action.
+That interpolation is also what lets a sequence walk through a menu and click a submenu item; a
+teleport would skip past the hover states that open it.
 
 ```powershell
 $sequence = @(
-    New-MouseStep -Action Move -X 100 -Y 40 -DelayMilliseconds 150   # open top-level menu
-    New-MouseStep -Action Click
-    New-MouseStep -Action Move -X 100 -Y 90 -DelayMilliseconds 150   # hover a submenu item
-    New-MouseStep -Action Click
+    New-MouseStep -Action Click -X 100 -Y 40 -DelayMilliseconds 150   # open the top-level menu
+    New-MouseStep -Action Click -X 100 -Y 90                          # hover + click a submenu item
 )
 
 $sequence | Invoke-MouseSequence
@@ -113,8 +128,8 @@ instead of `[{...}]`, which `Import-MouseSequence` has to account for either way
     "ExportedAt": "2026-07-16T18:23:00.0000000Z",
     "StepCount": 2,
     "Steps": [
-        { "Action": "Move", "X": 100, "Y": 40, "DurationMilliseconds": 300, "Steps": 30, "Clicks": 1, "Stationary": false, "Button": "Left", "Amount": 120, "DelayMilliseconds": 150 },
-        { "Action": "Click", "X": 0, "Y": 0, "DurationMilliseconds": 300, "Steps": 30, "Clicks": 1, "Stationary": false, "Button": "Left", "Amount": 120, "DelayMilliseconds": 0 }
+        { "Action": "Click", "X": 100, "Y": 40, "DurationMilliseconds": 300, "Steps": 30, "Clicks": 1, "Stationary": false, "Button": "Left", "Amount": 120, "DelayMilliseconds": 150 },
+        { "Action": "Click", "X": 100, "Y": 90, "DurationMilliseconds": 300, "Steps": 30, "Clicks": 1, "Stationary": false, "Button": "Left", "Amount": 120, "DelayMilliseconds": 0 }
     ]
 }
 ```
@@ -145,16 +160,18 @@ faster than `-SampleIntervalMilliseconds` (default 20ms), and scroll wheel input
 | --- | --- |
 | `Get-Cursor` | Returns the current cursor position as `@{ x = ..; y = .. }`. |
 | `Set-Cursor` | Moves the cursor to the given `x`/`y` coordinates. |
-| `Send-Click` | Sends one or more left mouse clicks at the current cursor position. |
-| `Send-RightClick` | Sends one or more right mouse clicks at the current cursor position. |
-| `Send-MiddleClick` | Sends one or more middle mouse clicks at the current cursor position. |
-| `Send-DoubleClick` | Sends one or more left double-clicks, timed to the OS double-click interval. |
+| `Send-Click` | Sends one or more mouse clicks (`-Button Left\|Right\|Middle`) at the current cursor position, or at `-X`/`-Y` if given (moves there first). |
+| `Send-RightClick` | Shorthand for `Send-Click -Button Right`. |
+| `Send-MiddleClick` | Shorthand for `Send-Click -Button Middle`. |
+| `Send-DoubleClick` | Sends one or more left double-clicks, timed to the OS double-click interval. Also takes `-X`/`-Y`. |
 | `Send-MouseDown` | Presses and holds a mouse button (`-Button Left\|Right\|Middle`) without releasing it. |
 | `Send-MouseUp` | Releases a previously pressed mouse button (`-Button Left\|Right\|Middle`). |
 | `Send-Scroll` | Sends a vertical mouse wheel event (`-Amount`, in multiples of 120 = one notch). |
 | `Send-HorizontalScroll` | Sends a horizontal mouse wheel event (`-Amount`, in multiples of 120 = one notch). |
-| `Move-Cursor` | Moves the cursor to `-X`/`-Y` through interpolated intermediate positions instead of a teleport, so hover-driven UI (menus, flyouts) tracks the movement. |
-| `New-MouseStep` | Builds a single step (`Move`, `Click`, `RightClick`, `MiddleClick`, `DoubleClick`, `MouseDown`, `MouseUp`, `Scroll`, `HorizontalScroll`, `Wait`) for use with `Invoke-MouseSequence`. |
+| `Move-Cursor` | Moves the cursor to `-X`/`-Y` (or by an offset via `-DeltaX`/`-DeltaY`) through interpolated intermediate positions instead of a teleport, so hover-driven UI (menus, flyouts) tracks the movement. |
+| `Get-ScreenResolution` | Returns the full virtual desktop bounds (`X`, `Y`, `Width`, `Height`) across every monitor. |
+| `Get-PixelColor` | Returns the RGB/hex color of the pixel at `-X`/`-Y`, for verify-before-click checks. |
+| `New-MouseStep` | Builds a single step (`Move`, `Click`, `RightClick`, `MiddleClick`, `DoubleClick`, `MouseDown`, `MouseUp`, `Scroll`, `HorizontalScroll`, `Wait`) for use with `Invoke-MouseSequence`. `-X`/`-Y` apply to `Move` and to the click actions (move there first, then click). |
 | `Invoke-MouseSequence` | Plays back an array of steps (piped in, or loaded via `-Path`) in order, either `-Repeat`ed a fixed number of times or looped for `-DurationSeconds`. |
 | `Export-MouseSequence` | Saves a step array to a JSON file as a `{ Version, ExportedAt, StepCount, Steps }` envelope. |
 | `Import-MouseSequence` | Loads a step array back from a JSON file written by `Export-MouseSequence`. |

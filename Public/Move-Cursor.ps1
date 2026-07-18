@@ -1,10 +1,15 @@
 function Move-Cursor {
-    [CmdletBinding()]
+    [CmdletBinding(DefaultParameterSetName = 'Absolute')]
     param (
-        [Parameter(Mandatory)]
+        [Parameter(Mandatory, ParameterSetName = 'Absolute')]
         [int]$X,
-        [Parameter(Mandatory)]
+        [Parameter(Mandatory, ParameterSetName = 'Absolute')]
         [int]$Y,
+
+        [Parameter(Mandatory, ParameterSetName = 'Relative')]
+        [int]$DeltaX,
+        [Parameter(Mandatory, ParameterSetName = 'Relative')]
+        [int]$DeltaY,
 
         # Total time to spend moving. 0 (or -Steps 1) jumps straight to the target, like Set-Cursor.
         [int]$DurationMilliseconds = 300,
@@ -15,12 +20,18 @@ function Move-Cursor {
     )
 
     Process {
+        $start = Get-Cursor
+
+        if ($PSCmdlet.ParameterSetName -eq 'Relative') {
+            $X = $start.x + $DeltaX
+            $Y = $start.y + $DeltaY
+        }
+
         if ($DurationMilliseconds -le 0 -or $Steps -le 1) {
             Set-Cursor -x $X -y $Y
             return
         }
 
-        $start = Get-Cursor
         $stepDelay = [Math]::Max(1, [int]($DurationMilliseconds / $Steps))
 
         for ($i = 1; $i -le $Steps; $i++) {
