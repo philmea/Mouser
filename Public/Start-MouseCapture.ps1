@@ -1,4 +1,38 @@
 function Start-MouseCapture {
+    <#
+    .SYNOPSIS
+    Records live mouse movement and clicks as a sequence.
+
+    .DESCRIPTION
+    Polls the cursor position and button state and turns what it sees into Move/MouseDown/MouseUp
+    steps in the same shape New-MouseStep produces, so the result plugs straight into
+    Invoke-MouseSequence or Export-MouseSequence. A countdown gives you time to get ready before
+    recording starts.
+
+    This is a polling capture, not a low-level input hook, so it can't see: clicks/moves faster
+    than -SampleIntervalMilliseconds, or scroll wheel input - add Scroll/HorizontalScroll steps by
+    hand with New-MouseStep if your sequence needs them.
+
+    .PARAMETER DurationSeconds
+    How long to record for, in seconds. Defaults to 10.
+
+    .PARAMETER SampleIntervalMilliseconds
+    How often to poll the cursor position and button state, in milliseconds. Defaults to 20.
+
+    .PARAMETER CountdownSeconds
+    How long to count down before recording starts, in seconds. Defaults to 3.
+
+    .EXAMPLE
+    PS> $captured = Start-MouseCapture -DurationSeconds 10
+    Counts down 3 seconds, records for 10 seconds, then returns the captured steps.
+
+    .EXAMPLE
+    PS> Start-MouseCapture -DurationSeconds 10 | Export-MouseSequence -Path ./recorded.json
+    Records for 10 seconds and saves the result directly to disk.
+
+    .OUTPUTS
+    PSCustomObject[] (Mouser.MouseStep)
+    #>
     [CmdletBinding()]
     param (
         [int]$DurationSeconds = 10,
