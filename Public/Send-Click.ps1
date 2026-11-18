@@ -5,8 +5,8 @@ function Send-Click {
         [Nullable[int]]$Y = $null,
         [ValidateSet('Left', 'Right', 'Middle')]
         [string]$Button = 'Left',
-        [int]$clicks = 1,
-        $stationary = $false
+        [int]$Clicks = 1,
+        [bool]$Stationary = $false
     )
     Process {
         if (($null -eq $X) -xor ($null -eq $Y)) {
@@ -19,10 +19,10 @@ function Send-Click {
         $click = 1
         $pos = Get-Cursor
 
-        while ($click -le $clicks) {
-            if ($stationary -eq $true) {
+        while ($click -le $Clicks) {
+            if ($Stationary -eq $true) {
                 $currentPos = Get-Cursor
-                if ($currentPos.x -ne $pos.x -and $currentPos.y -ne $pos.y) {
+                if ($currentPos.X -ne $pos.X -and $currentPos.Y -ne $pos.Y) {
                     break
                 }
             }

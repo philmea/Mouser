@@ -20,13 +20,13 @@ Import-Module ./Mouser.psd1
 Get-Cursor
 
 # Move the cursor
-Set-Cursor -x 500 -y 300
+Set-Cursor -X 500 -Y 300
 
 # Left-click once at the current cursor position
 Send-Click
 
 # Left-click 3 times, aborting if the cursor moves between clicks
-Send-Click -clicks 3 -stationary $true
+Send-Click -Clicks 3 -Stationary $true
 
 # Click a specific point in one call - moves there (interpolated via Move-Cursor), then clicks
 Send-Click -X 812 -Y 340
@@ -45,7 +45,7 @@ Send-DoubleClick -X 812 -Y 340
 
 # Press and hold the left button, move, then release (manual drag)
 Send-MouseDown -Button Left
-Set-Cursor -x 800 -y 400
+Set-Cursor -X 800 -Y 400
 Send-MouseUp -Button Left
 
 # Scroll up one notch, then down two notches
@@ -158,9 +158,9 @@ faster than `-SampleIntervalMilliseconds` (default 20ms), and scroll wheel input
 
 | Cmdlet | Description |
 | --- | --- |
-| `Get-Cursor` | Returns the current cursor position as `@{ x = ..; y = .. }`. |
-| `Set-Cursor` | Moves the cursor to the given `x`/`y` coordinates. |
-| `Send-Click` | Sends one or more mouse clicks (`-Button Left\|Right\|Middle`) at the current cursor position, or at `-X`/`-Y` if given (moves there first). |
+| `Get-Cursor` | Returns the current cursor position as `@{ X = ..; Y = .. }`. |
+| `Set-Cursor` | Moves the cursor to the given `-X`/`-Y` coordinates. |
+| `Send-Click` | Sends `-Clicks` mouse clicks (`-Button Left\|Right\|Middle`) at the current cursor position, or at `-X`/`-Y` if given (moves there first). `-Stationary $true` aborts if the cursor moves between clicks. |
 | `Send-RightClick` | Shorthand for `Send-Click -Button Right`. |
 | `Send-MiddleClick` | Shorthand for `Send-Click -Button Middle`. |
 | `Send-DoubleClick` | Sends one or more left double-clicks, timed to the OS double-click interval. Also takes `-X`/`-Y`. |

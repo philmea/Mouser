@@ -3,10 +3,10 @@ function Send-RightClick {
     param (
         [Nullable[int]]$X = $null,
         [Nullable[int]]$Y = $null,
-        [int]$clicks = 1,
-        $stationary = $false
+        [int]$Clicks = 1,
+        [bool]$Stationary = $false
     )
     Process {
-        Send-Click -X $X -Y $Y -Button Right -clicks $clicks -stationary $stationary
+        Send-Click -X $X -Y $Y -Button Right -Clicks $Clicks -Stationary $Stationary
     }
 }

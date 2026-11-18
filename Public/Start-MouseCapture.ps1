@@ -30,13 +30,13 @@ function Start-MouseCapture {
             $elapsedMs = [int]$stopwatch.Elapsed.TotalMilliseconds
 
             $pos = Get-Cursor
-            if ($pos.x -ne $lastPos.x -or $pos.y -ne $lastPos.y) {
+            if ($pos.X -ne $lastPos.X -or $pos.Y -ne $lastPos.Y) {
                 if ($steps.Count -gt 0) {
                     $steps[-1].DelayMilliseconds = [Math]::Max(0, $elapsedMs - $lastEventMs)
                 }
                 # DurationMilliseconds 0 replays as an instant jump; the recorded delays between
                 # samples already reproduce the motion, so re-interpolating on top would double it up.
-                $steps += New-MouseStep -Action Move -X $pos.x -Y $pos.y -DurationMilliseconds 0
+                $steps += New-MouseStep -Action Move -X $pos.X -Y $pos.Y -DurationMilliseconds 0
                 $lastPos = $pos
                 $lastEventMs = $elapsedMs
             }

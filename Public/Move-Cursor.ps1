@@ -23,12 +23,12 @@ function Move-Cursor {
         $start = Get-Cursor
 
         if ($PSCmdlet.ParameterSetName -eq 'Relative') {
-            $X = $start.x + $DeltaX
-            $Y = $start.y + $DeltaY
+            $X = $start.X + $DeltaX
+            $Y = $start.Y + $DeltaY
         }
 
         if ($DurationMilliseconds -le 0 -or $Steps -le 1) {
-            Set-Cursor -x $X -y $Y
+            Set-Cursor -X $X -Y $Y
             return
         }
 
@@ -36,9 +36,9 @@ function Move-Cursor {
 
         for ($i = 1; $i -le $Steps; $i++) {
             $t = $i / $Steps
-            $nextX = [int][Math]::Round($start.x + (($X - $start.x) * $t))
-            $nextY = [int][Math]::Round($start.y + (($Y - $start.y) * $t))
-            Set-Cursor -x $nextX -y $nextY | Out-Null
+            $nextX = [int][Math]::Round($start.X + (($X - $start.X) * $t))
+            $nextY = [int][Math]::Round($start.Y + (($Y - $start.Y) * $t))
+            Set-Cursor -X $nextX -Y $nextY | Out-Null
             Start-Sleep -Milliseconds $stepDelay
         }
 
