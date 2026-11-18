@@ -1,4 +1,28 @@
 function Get-PixelColor {
+    <#
+    .SYNOPSIS
+    Gets the color of a pixel on screen.
+
+    .DESCRIPTION
+    Captures a single pixel at the given screen coordinates and returns its color, for
+    verify-before-click checks (e.g. wait until a button visibly lights up or changes state)
+    instead of clicking blind.
+
+    .PARAMETER X
+    Horizontal coordinate of the pixel, in screen pixels.
+
+    .PARAMETER Y
+    Vertical coordinate of the pixel, in screen pixels.
+
+    .EXAMPLE
+    PS> Get-PixelColor -X 812 -Y 340
+    R   G   B   Hex
+    -   -   -   ---
+    255 255 255 #FFFFFF
+
+    .OUTPUTS
+    PSCustomObject with R, G, B, Hex properties.
+    #>
     [CmdletBinding()]
     param (
         [Parameter(Mandatory)]

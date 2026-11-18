@@ -1,5 +1,7 @@
 # Mouser
 
+[![Tests](https://github.com/philmea/Mouser/actions/workflows/tests.yml/badge.svg)](https://github.com/philmea/Mouser/actions/workflows/tests.yml)
+
 A PowerShell module for Windows mouse automation — read and set cursor position, send clicks, and scroll.
 
 ## Requirements
@@ -20,13 +22,13 @@ Import-Module ./Mouser.psd1
 Get-Cursor
 
 # Move the cursor
-Set-Cursor -x 500 -y 300
+Set-Cursor -X 500 -Y 300
 
 # Left-click once at the current cursor position
 Send-Click
 
 # Left-click 3 times, aborting if the cursor moves between clicks
-Send-Click -clicks 3 -stationary $true
+Send-Click -Clicks 3 -Stationary $true
 
 # Click a specific point in one call - moves there (interpolated via Move-Cursor), then clicks
 Send-Click -X 812 -Y 340
@@ -45,7 +47,7 @@ Send-DoubleClick -X 812 -Y 340
 
 # Press and hold the left button, move, then release (manual drag)
 Send-MouseDown -Button Left
-Set-Cursor -x 800 -y 400
+Set-Cursor -X 800 -Y 400
 Send-MouseUp -Button Left
 
 # Scroll up one notch, then down two notches
@@ -158,9 +160,9 @@ faster than `-SampleIntervalMilliseconds` (default 20ms), and scroll wheel input
 
 | Cmdlet | Description |
 | --- | --- |
-| `Get-Cursor` | Returns the current cursor position as `@{ x = ..; y = .. }`. |
-| `Set-Cursor` | Moves the cursor to the given `x`/`y` coordinates. |
-| `Send-Click` | Sends one or more mouse clicks (`-Button Left\|Right\|Middle`) at the current cursor position, or at `-X`/`-Y` if given (moves there first). |
+| `Get-Cursor` | Returns the current cursor position as `@{ X = ..; Y = .. }`. |
+| `Set-Cursor` | Moves the cursor to the given `-X`/`-Y` coordinates. |
+| `Send-Click` | Sends `-Clicks` mouse clicks (`-Button Left\|Right\|Middle`) at the current cursor position, or at `-X`/`-Y` if given (moves there first). `-Stationary $true` aborts if the cursor moves between clicks. |
 | `Send-RightClick` | Shorthand for `Send-Click -Button Right`. |
 | `Send-MiddleClick` | Shorthand for `Send-Click -Button Middle`. |
 | `Send-DoubleClick` | Sends one or more left double-clicks, timed to the OS double-click interval. Also takes `-X`/`-Y`. |
@@ -185,4 +187,16 @@ Mouser.psd1     # module manifest
 Mouser.psm1     # root module, dot-sources Public/Private functions and exports the public ones
 Public/         # one file per exported cmdlet
 Private/        # internal helper functions (e.g. the shared user32.dll mouse_event wrapper)
+Tests/          # Pester tests (unit tests with mocks, plus a small functional suite - see below)
 ```
+
+## Testing
+
+```powershell
+Install-Module -Name Pester -MinimumVersion 5.5.0 -Force -SkipPublisherCheck -Scope CurrentUser
+Invoke-Pester -Path ./Tests
+```
+
+Most of the suite is unit tests that mock their way around the Win32 dependency (`Invoke-Win32MouseEvent`, `Test-Win32KeyState`, and the public cmdlets that wrap them), so they run anywhere Pester does. `Tests/Cursor.Functional.Tests.ps1` is the exception: it exercises real cursor movement rather than mocking it, since GitHub's `windows-latest` runners provide an actual interactive desktop session (unlike a headless Linux CI container), and that's the only reliable way to verify `Set-Cursor`/`Get-Cursor` actually work. It's tagged `Functional`; skip it with `Invoke-Pester -Path ./Tests -ExcludeTag Functional` on a machine without a real desktop session (e.g. this one, running headless on Linux - which is why it hasn't been run here).
+
+CI runs the full suite on `windows-latest` via `.github/workflows/tests.yml` on every push to `main` and every pull request.
