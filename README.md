@@ -1,5 +1,7 @@
 # Mouser
 
+[![Tests](https://github.com/philmea/Mouser/actions/workflows/tests.yml/badge.svg)](https://github.com/philmea/Mouser/actions/workflows/tests.yml)
+
 A PowerShell module for Windows mouse automation — read and set cursor position, send clicks, and scroll.
 
 ## Requirements
@@ -185,4 +187,16 @@ Mouser.psd1     # module manifest
 Mouser.psm1     # root module, dot-sources Public/Private functions and exports the public ones
 Public/         # one file per exported cmdlet
 Private/        # internal helper functions (e.g. the shared user32.dll mouse_event wrapper)
+Tests/          # Pester tests (unit tests with mocks, plus a small functional suite - see below)
 ```
+
+## Testing
+
+```powershell
+Install-Module -Name Pester -MinimumVersion 5.5.0 -Force -SkipPublisherCheck -Scope CurrentUser
+Invoke-Pester -Path ./Tests
+```
+
+Most of the suite is unit tests that mock their way around the Win32 dependency (`Invoke-Win32MouseEvent`, `Test-Win32KeyState`, and the public cmdlets that wrap them), so they run anywhere Pester does. `Tests/Cursor.Functional.Tests.ps1` is the exception: it exercises real cursor movement rather than mocking it, since GitHub's `windows-latest` runners provide an actual interactive desktop session (unlike a headless Linux CI container), and that's the only reliable way to verify `Set-Cursor`/`Get-Cursor` actually work. It's tagged `Functional`; skip it with `Invoke-Pester -Path ./Tests -ExcludeTag Functional` on a machine without a real desktop session (e.g. this one, running headless on Linux - which is why it hasn't been run here).
+
+CI runs the full suite on `windows-latest` via `.github/workflows/tests.yml` on every push to `main` and every pull request.
